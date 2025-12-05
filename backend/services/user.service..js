@@ -11,7 +11,7 @@ module.exports.createUser = async ({
   }
   const existingUser = await userModel.findOne({ email });
   if (existingUser) {
-    throw new Error("User already exists with this email!");
+    throw new Error("User already exists!");
   }
 
   const user = await userModel.create({

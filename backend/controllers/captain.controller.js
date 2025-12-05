@@ -1,29 +1,33 @@
 const { validationResult } = require("express-validator");
-const userModel = require("../models/user.model");
-const { createUser } = require("../services/user.service..js");
-const blacklistTokenModel = require("../models/blacklistToken.model.js");
+const { createCaptain } = require("../services/captain.service");
+const captainModel = require("../models/captain.model");
+const blacklistTokenModel = require("../models/blacklistToken.model");
 
-module.exports.registerUser = async (req, res, next) => {
+module.exports.registerCaptain = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { fullname, email, password } = req.body;
-    const hashedPassword = await userModel.hashPassword(password);
-    const user = await createUser({
+    const { fullname, email, password, vehicle } = req.body;
+    const hashedPassword = await captainModel.hashPassword(password);
+    const captain = await createCaptain({
       firstname: fullname.firstname,
       lastname: fullname.lastname,
       email,
       password: hashedPassword,
+      color: vehicle.color,
+      plateNumber: vehicle.plateNumber,
+      capacity: vehicle.capacity,
+      vehicleType: vehicle.vehicleType,
     });
-    const token = user.generateAuthToken();
+    const token = captain.generateAuthToken();
     res.status(201).json({
       status: true,
-      message: "User registered successfully.",
+      message: "Captain registered successfully.",
       token,
-      user,
+      captain,
     });
   } catch (error) {
     res.status(400).json({
@@ -33,7 +37,7 @@ module.exports.registerUser = async (req, res, next) => {
   }
 };
 
-module.exports.loginUser = async (req, res, next) => {
+module.exports.loginCaptain = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -41,20 +45,20 @@ module.exports.loginUser = async (req, res, next) => {
     }
 
     const { email, password } = req.body;
-    const user = await userModel
+    const captain = await captainModel
       .findOne({
         email,
       })
       .select("+password");
 
-    if (!user) {
+    if (!captain) {
       return res.status(401).json({
         status: false,
         message: "Invalid email or password!",
       });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await captain.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({
         status: false,
@@ -62,15 +66,15 @@ module.exports.loginUser = async (req, res, next) => {
       });
     }
 
-    const token = user.generateAuthToken();
+    const token = captain.generateAuthToken();
 
     res.cookie("token", token);
 
     res.status(200).json({
       status: true,
-      message: "User logged in successfully.",
+      message: "Captain logged in successfully.",
       token,
-      user,
+      captain,
     });
   } catch (error) {
     res.status(400).json({
@@ -80,12 +84,12 @@ module.exports.loginUser = async (req, res, next) => {
   }
 };
 
-module.exports.getUserProfile = async (req, res, next) => {
+module.exports.getCaptainProfile = async (req, res, next) => {
   try {
     res.status(200).json({
       status: true,
       message: "Profile fetched successfully.",
-      user: req.user,
+      captain: req.captain,
     });
   } catch (error) {
     res.status(400).json({
@@ -94,7 +98,8 @@ module.exports.getUserProfile = async (req, res, next) => {
     });
   }
 };
-module.exports.logoutUser = async (req, res, next) => {
+
+module.exports.logoutCaptain = async (req, res, next) => {
   try {
     const token =
       req.cookies.token ||

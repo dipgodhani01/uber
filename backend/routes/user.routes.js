@@ -12,9 +12,9 @@ const {
 } = require("../validations/user.validation");
 const { authUser } = require("../middlewares/auth.middleware");
 
-router.post("/user/register", registerValidation, registerUser);
-router.post("/user/login", loginValidation, loginUser);
-router.get("/user/profile", authUser, getUserProfile);
-router.get("/user/logout", authUser, logoutUser);
+router.post("/register", registerValidation, registerUser);
+router.post("/login", loginValidation, loginUser);
+router.get("/profile", authUser, getUserProfile);
+router.get("/logout", authUser, logoutUser);
 
 module.exports = router;
