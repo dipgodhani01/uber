@@ -1,6 +1,9 @@
 // # copilot docs generate prompt
 
-// Promt = create a readme .md file to docs the /users/register endpoint with description and status code also write the data how the data is required in the endpoint, create md file in the backend folder
+// First time create Prompt
+//  create a readme .md file to docs the /users/register endpoint with description and status code also write the data how the data is required in the endpoint, create md file in the backend folder
+//  already create docs Prompt
+//  add docs for /user/login endpoint
 
 // 1. setup server
 // 2. database connection

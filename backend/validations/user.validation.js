@@ -15,3 +15,9 @@ exports.registerValidation = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long!"),
 ];
+exports.loginValidation = [
+  body("email").isEmail().withMessage("Invalid Email!"),
+  body("password")
+    .isLength({ min: 6 })
+    .withMessage("Password must be at least 6 characters long!"),
+];
