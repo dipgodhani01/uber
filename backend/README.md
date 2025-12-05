@@ -3,8 +3,6 @@
 This document describes the authentication-related endpoints in the backend.
 Each endpoint section includes purpose, request shape, validations, responses, and example requests.
 
-Base URL (local): `http://localhost:3000`
-
 ---
 
 ## 1) POST /user/register
@@ -35,7 +33,7 @@ Example request body
 }
 ```
 
-Validations (implemented in `validations/user.validation.js`)
+Validations
 
 - `email` must be a valid email
 - `fullname.firstname` and `fullname.lastname` must each be at least 3 characters
@@ -61,8 +59,6 @@ Responses
   }
   ```
 
-- 400 Bad Request — Validation errors or other client errors
-
   - Example (express-validator):
 
   ```json
@@ -75,23 +71,6 @@ Responses
     ]
   }
   ```
-
-- 409 Conflict — Email already exists (service throws this as an error message)
-- 500 Internal Server Error — Unexpected server error
-
-Notes & Implementation
-
-- Passwords are hashed using `bcrypt` before storage (`user.model.hashPasswrod`).
-- `user.service.createUser` checks for existing email and throws an error if the email already exists.
-- A JWT is issued using `user.generateAuthToken()`; ensure `process.env.JWT_SECRET` is set.
-
-Quick cURL
-
-```
-curl -X POST http://localhost:3000/user/register \
-  -H "Content-Type: application/json" \
-  -d '{"fullname":{"firstname":"Jane","lastname":"Doe"},"email":"jane.doe@example.com","password":"s3cr3t!"}'
-```
 
 ---
 
@@ -118,7 +97,8 @@ Example request body
 
 Validations
 
-- Same as `loginValidation` in `validations/user.validation.js`.
+- `email` must be a valid email
+- `password` must be at least 6 characters
 
 Responses
 
@@ -140,24 +120,6 @@ Responses
   }
   ```
 
-  - The server also sets a cookie `token` with the JWT.
-
-- 400 Bad Request — Validation errors
-- 401 Unauthorized — Invalid email or password
-- 500 Internal Server Error — Unexpected server error
-
-Security note
-
-- The controller currently fetches the user with `select('+password')` for verification. The returned `user` in the response should NOT include the password. The controller relies on Mongoose `select: false` but ensure you don't return the password field.
-
-Quick cURL
-
-```
-curl -X POST http://localhost:3000/user/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"jane.doe@example.com","password":"s3cr3t!"}'
-```
-
 ---
 
 ## 3) GET /user/profile
@@ -174,7 +136,7 @@ Request
 
 Behavior
 
-- Protected route using `auth.middleware` which verifies JWT, checks blacklist, and loads the user into `req.user`.
+- Protected route which verifies JWT, checks blacklist, and loads the user
 
 Responses
 
@@ -194,15 +156,6 @@ Responses
     }
   }
   ```
-
-- 401 Unauthorized — Missing/invalid/blacklisted token
-
-Quick cURL
-
-```
-curl -X GET http://localhost:3000/user/profile \
-  -H "Authorization: Bearer <jwt-token>"
-```
 
 ---
 
@@ -232,26 +185,4 @@ Responses
   { "status": true, "message": "Logged out successfully." }
   ```
 
-- 400 Bad Request — No token provided
-- 401 Unauthorized — Invalid/blacklisted token
-
-Quick cURL
-
-```
-curl -X GET http://localhost:3000/user/logout \
-  -H "Authorization: Bearer <jwt-token>"
-```
-
-Notes & Recommendations
-
-- Blacklist tokens are stored in `backend/models/blacklistToken.model.js` with a TTL of 24 hours. The `auth.middleware` should check that collection to deny blacklisted tokens.
-- Ensure `auth.middleware` uses the `BlacklistToken` model (not `userModel`) when checking for blacklisted tokens.
-- Keep `process.env.JWT_SECRET` set and secure. Match JWT expiration with blacklist TTL as desired.
-- Consider storing refresh tokens (if implemented) and invalidating them on logout.
-
 ---
-
-If you want, I can:
-
-- Update `auth.middleware` to correctly use the `BlacklistToken` model and add helper service functions `blacklistToken(token)` and `isTokenBlacklisted(token)`.
-- Add Postman collection or automated tests for these endpoints.
